@@ -1,3 +1,3 @@
-pyecotrend-ista
+git+https://github.com/gabrielbahniuk/pyecotrend-ista.git@main
 psycopg[binary]
 python-dotenv
