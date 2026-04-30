@@ -16,6 +16,10 @@ def main() -> None:
     payload = extract_from_ista()
     records = normalize(payload, source=source)
     inserted = write_records(records)
+    unknown_metric = sum(1 for r in records if r.get("metric") == "unknown")
+    unknown_unit = sum(1 for r in records if r.get("unit") == "unknown")
+    missing_period_end = sum(1 for r in records if not r.get("period_end"))
+    sample = records[0] if records else None
 
     print(
         "Pipeline completed:",
@@ -23,6 +27,10 @@ def main() -> None:
             "units": len(payload.get("uuids", [])),
             "records_generated": len(records),
             "records_inserted": inserted,
+            "unknown_metric": unknown_metric,
+            "unknown_unit": unknown_unit,
+            "missing_period_end": missing_period_end,
+            "sample_record": sample,
         },
     )
 
