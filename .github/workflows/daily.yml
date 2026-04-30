@@ -32,6 +32,7 @@ jobs:
           ISTA_EMAIL: ${{ secrets.ISTA_EMAIL }}
           ISTA_PASSWORD: ${{ secrets.ISTA_PASSWORD }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          PIPELINE_DEBUG: ${{ secrets.PIPELINE_DEBUG }}
           PIPELINE_SOURCE: ista
           PIPELINE_TIMEZONE: UTC
         run: python -m src.pipeline.run
