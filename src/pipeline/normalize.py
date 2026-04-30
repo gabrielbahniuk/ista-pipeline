@@ -23,6 +23,40 @@ def _to_float(value: Any) -> float | None:
     return None
 
 
+def _find_first_numeric(value: Any) -> float | None:
+    if isinstance(value, dict):
+        preferred_keys = (
+            "value",
+            "consumption",
+            "amount",
+            "reading",
+            "current_value",
+            "currentValue",
+            "reading_value",
+            "readingValue",
+            "cost",
+            "co2",
+            "emission",
+        )
+        for key in preferred_keys:
+            if key in value:
+                found = _to_float(value.get(key))
+                if found is not None:
+                    return found
+        for nested in value.values():
+            found = _find_first_numeric(nested)
+            if found is not None:
+                return found
+        return None
+    if isinstance(value, list):
+        for item in value:
+            found = _find_first_numeric(item)
+            if found is not None:
+                return found
+        return None
+    return _to_float(value)
+
+
 def _guess_metric(key: str, item: Any) -> str:
     text = f"{key} {json.dumps(item, ensure_ascii=True)}".lower()
     if "water" in text and "hot" in text:
@@ -73,24 +107,7 @@ def normalize(payload: dict[str, Any], source: str = "ista") -> list[dict[str, A
         consumption = unit_payload.get("consumption")
 
         for key, raw_item in _iter_measurements(consumption):
-            value = None
-            if isinstance(raw_item, dict):
-                for candidate in (
-                    "value",
-                    "consumption",
-                    "amount",
-                    "reading",
-                    "current_value",
-                    "currentValue",
-                    "reading_value",
-                    "readingValue",
-                ):
-                    if candidate in raw_item:
-                        value = _to_float(raw_item.get(candidate))
-                        if value is not None:
-                            break
-            if value is None:
-                value = _to_float(raw_item)
+            value = _find_first_numeric(raw_item)
             if value is None:
                 continue
 
