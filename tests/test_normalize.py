@@ -72,3 +72,34 @@ def test_normalize_fingerprint_is_stable_for_same_payload() -> None:
     assert len(first) == 1
     assert len(second) == 1
     assert first[0]["fingerprint"] == second[0]["fingerprint"]
+
+
+def test_normalize_extracts_monthly_costs() -> None:
+    payload = {
+        "uuids": ["unit-1"],
+        "items": {
+            "unit-1": {
+                "consumption": {
+                    "costs": [
+                        {
+                            "date": {"month": 3, "year": 2026},
+                            "costsByEnergyType": [
+                                {"type": "heating", "value": 95, "unit": "EUR"},
+                                {"type": "warmwater", "value": 80, "unit": "EUR"},
+                                {"type": None, "value": None, "unit": None},
+                            ],
+                        }
+                    ]
+                },
+                "details": {},
+            }
+        },
+    }
+
+    records = normalize(payload)
+
+    assert len(records) == 2
+    assert records[0]["metric"] == "heating_cost"
+    assert records[0]["unit"] == "EUR"
+    assert records[0]["period_end"] == "2026-03-31T23:59:59+00:00"
+    assert records[1]["metric"] == "hot_water_cost"

@@ -67,6 +67,13 @@ def _map_metric(raw_type: Any) -> str:
     return "unknown"
 
 
+def _map_cost_metric(raw_type: Any) -> str:
+    base = _map_metric(raw_type)
+    if base == "unknown":
+        return base
+    return f"{base}_cost"
+
+
 def _normalize_unit(unit: Any) -> str:
     text = str(unit or "").strip()
     if not text:
@@ -147,6 +154,7 @@ def normalize(payload: dict[str, Any], source: str = "ista") -> list[dict[str, A
             meter_name = details.get("name") or details.get("meter_name")
 
         consumptions = consumption.get("consumptions") if isinstance(consumption, dict) else None
+        costs = consumption.get("costs") if isinstance(consumption, dict) else None
         if isinstance(consumptions, list):
             for period_item in consumptions:
                 if not isinstance(period_item, dict):
@@ -189,6 +197,48 @@ def normalize(payload: dict[str, Any], source: str = "ista") -> list[dict[str, A
                             "fingerprint": fingerprint,
                         }
                     )
+        if isinstance(costs, list):
+            for cost_item in costs:
+                if not isinstance(cost_item, dict):
+                    continue
+
+                period_end = _period_end_from_date_block(cost_item.get("date"))
+                costs_by_energy_type = cost_item.get("costsByEnergyType")
+                if not isinstance(costs_by_energy_type, list):
+                    continue
+
+                for cost_reading in costs_by_energy_type:
+                    if not isinstance(cost_reading, dict):
+                        continue
+                    value = _to_float(cost_reading.get("value"))
+                    if value is None:
+                        continue
+
+                    metric = _map_cost_metric(cost_reading.get("type"))
+                    unit = _normalize_unit(cost_reading.get("unit"))
+
+                    fingerprint_raw = f"{unit_uuid}|{metric}|{period_end}|{value}|{unit}"
+                    fingerprint = hashlib.sha256(fingerprint_raw.encode("utf-8")).hexdigest()
+
+                    records.append(
+                        {
+                            "source": source,
+                            "unit_uuid": str(unit_uuid),
+                            "meter_name": meter_name,
+                            "metric": metric,
+                            "period_start": None,
+                            "period_end": period_end,
+                            "value": value,
+                            "unit": unit,
+                            "raw_payload": {
+                                "period": cost_item.get("date"),
+                                "cost": cost_reading,
+                            },
+                            "collected_at": now,
+                            "fingerprint": fingerprint,
+                        }
+                    )
+        if isinstance(consumptions, list) or isinstance(costs, list):
             continue
 
         for key, raw_item in _iter_measurements(consumption):
