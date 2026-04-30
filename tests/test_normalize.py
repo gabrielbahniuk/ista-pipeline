@@ -28,9 +28,15 @@ def test_normalize_extracts_numeric_from_nested_payload() -> None:
                 "consumption": {
                     "consumptions": [
                         {
-                            "periodEnd": "2026-04-01T00:00:00Z",
-                            "readings": [{"currentValue": "123.45"}],
-                            "unit": "kWh",
+                            "date": {"month": 4, "year": 2026},
+                            "readings": [
+                                {
+                                    "type": "heating",
+                                    "value": "123,45",
+                                    "unit": "Einheiten",
+                                    "additionalUnit": "kWh",
+                                }
+                            ],
                         }
                     ]
                 },
@@ -43,7 +49,9 @@ def test_normalize_extracts_numeric_from_nested_payload() -> None:
 
     assert len(records) == 1
     assert records[0]["value"] == 123.45
-    assert records[0]["period_end"] == "2026-04-01T00:00:00Z"
+    assert records[0]["period_end"] == "2026-04-30T23:59:59+00:00"
+    assert records[0]["metric"] == "heating"
+    assert records[0]["unit"] == "units"
     assert records[0]["meter_name"] == "Main Meter"
 
 

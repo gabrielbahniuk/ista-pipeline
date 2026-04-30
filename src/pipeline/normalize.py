@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from calendar import monthrange
 from datetime import UTC, datetime
 from typing import Any
 
@@ -57,6 +58,42 @@ def _find_first_numeric(value: Any) -> float | None:
     return _to_float(value)
 
 
+def _map_metric(raw_type: Any) -> str:
+    text = str(raw_type or "").strip().lower()
+    if text == "warmwater":
+        return "hot_water"
+    if text:
+        return text
+    return "unknown"
+
+
+def _normalize_unit(unit: Any) -> str:
+    text = str(unit or "").strip()
+    if not text:
+        return "unknown"
+    lowered = text.lower()
+    if lowered in {"einheiten", "units"}:
+        return "units"
+    if lowered in {"m³", "m3"}:
+        return "m3"
+    if lowered == "kwh":
+        return "kWh"
+    return text
+
+
+def _period_end_from_date_block(value: Any) -> str | None:
+    if not isinstance(value, dict):
+        return None
+    month = value.get("month")
+    year = value.get("year")
+    if not isinstance(month, int) or not isinstance(year, int):
+        return None
+    if month < 1 or month > 12:
+        return None
+    last_day = monthrange(year, month)[1]
+    return datetime(year, month, last_day, 23, 59, 59, tzinfo=UTC).isoformat()
+
+
 def _guess_metric(key: str, item: Any) -> str:
     text = f"{key} {json.dumps(item, ensure_ascii=True)}".lower()
     if "water" in text and "hot" in text:
@@ -105,6 +142,54 @@ def normalize(payload: dict[str, Any], source: str = "ista") -> list[dict[str, A
     for unit_uuid, unit_payload in items.items():
         details = unit_payload.get("details")
         consumption = unit_payload.get("consumption")
+        meter_name = None
+        if isinstance(details, dict):
+            meter_name = details.get("name") or details.get("meter_name")
+
+        consumptions = consumption.get("consumptions") if isinstance(consumption, dict) else None
+        if isinstance(consumptions, list):
+            for period_item in consumptions:
+                if not isinstance(period_item, dict):
+                    continue
+
+                period_end = _period_end_from_date_block(period_item.get("date"))
+                readings = period_item.get("readings")
+                if not isinstance(readings, list):
+                    continue
+
+                for reading in readings:
+                    if not isinstance(reading, dict):
+                        continue
+                    value = _to_float(reading.get("value"))
+                    if value is None:
+                        continue
+
+                    metric = _map_metric(reading.get("type"))
+                    # Prefer the primary unit; fallback to additional unit when missing
+                    unit = _normalize_unit(reading.get("unit") or reading.get("additionalUnit"))
+
+                    fingerprint_raw = f"{unit_uuid}|{metric}|{period_end}|{value}|{unit}"
+                    fingerprint = hashlib.sha256(fingerprint_raw.encode("utf-8")).hexdigest()
+
+                    records.append(
+                        {
+                            "source": source,
+                            "unit_uuid": str(unit_uuid),
+                            "meter_name": meter_name,
+                            "metric": metric,
+                            "period_start": None,
+                            "period_end": period_end,
+                            "value": value,
+                            "unit": unit,
+                            "raw_payload": {
+                                "period": period_item.get("date"),
+                                "reading": reading,
+                            },
+                            "collected_at": now,
+                            "fingerprint": fingerprint,
+                        }
+                    )
+            continue
 
         for key, raw_item in _iter_measurements(consumption):
             value = _find_first_numeric(raw_item)
@@ -128,9 +213,6 @@ def normalize(payload: dict[str, Any], source: str = "ista") -> list[dict[str, A
                     or raw_item.get("end")
                     or raw_item.get("to")
                 )
-            meter_name = None
-            if isinstance(details, dict):
-                meter_name = details.get("name") or details.get("meter_name")
 
             fingerprint_raw = f"{unit_uuid}|{metric}|{period_end}|{value}|{unit}"
             fingerprint = hashlib.sha256(fingerprint_raw.encode("utf-8")).hexdigest()
