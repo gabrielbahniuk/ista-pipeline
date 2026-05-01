@@ -12,69 +12,47 @@
 
 ## What
 
-Fetches data from your **ISTA EcoTrend** account, normalizes it, and generates Markdown reports (**`REPORT.md`** as an index plus **`REPORT_YYYY.md`** per year) and SVG charts under **`assets/charts/`**. No database or data collection. Everything stays under your control in the repository files. A **private fork** is recommended. Consumption and costs end up in git history.
+Understanding the financial impact of your yearly heating & showering behaviour.
 
+![Demo: setup and viewing reports](docs/demo.gif)
 
 ## Why
 
-Stop hunting numbers in the EcoTrend UI. Get consumption + costs as **Markdown + charts** in **your private** repo instead.
+**Useful:** Stop chasing numbers in the official app. See your year in one place.
 
-- **3 minutes to wire up**, then it can run quietly every month without you babysitting exports.
-- **Year-over-year at a glance.** Tables and charts you actually want to scroll.
+**Quick:** Minimal setup. Only an ISTA account + a few Github clicks.
 
-
----
+**Safe:** Keep your repository and data private. No need to expose any of it.
 
 ## Quick start
 
-You do not need Python or a terminal on your machine — only **GitHub** and **ISTA**.
-
-### Step by step
-
-1. **Fork this repository** (preferably **private**, so only you can see reports with your real data).
-2. In your fork, open **Settings** → **Secrets and variables** → **Actions**.
-3. Click **New repository secret** and add two secrets (names must match exactly):
+1. Click on **Use this template** → **Create a new repository**.
+2. Choose a name, an optional description and select **private** visibility.
+3. On the repository page, open **Settings** → **Secrets and variables** → **Actions**.
+4. Click **New repository secret** and add two secrets (names must match exactly):
 
    | Name               | Value                                       |
    |--------------------|---------------------------------------------|
    | `ISTA_EMAIL`       | your ISTA EcoTrend account email            |
    | `ISTA_PASSWORD`    | that account’s password                     |
 
-4. Make sure **GitHub Actions** is enabled on the fork: **Settings** → **Actions** → **General** → allow workflows to run (forks sometimes have Actions restricted by default).
+
 5. Open the **Actions** tab, select the **Generate ISTA report** workflow.
 6. Click **Run workflow** → choose your default branch (often `main`) → **Run workflow**.
 
-When it finishes successfully, the repo will show updated **`REPORT.md`** (year index), **`REPORT_2026.md`** (and other years as data allows), and **`assets/charts/`**. Open the `.md` files right on GitHub.
+Go back to the repository page and click on `REPORT.md` to start visualizing the data.
 
-### Or just wait for the schedule
+### (Optional) just wait for the schedule
 
 The same workflow runs automatically on the **18th of every month at 06:00 UTC**. Change the time in [.github/workflows/report.yml](.github/workflows/report.yml) if needed.
-Why on this date? Normally ISTA sends out the monthly consumption email between 13th and 16th.
-
----
-
-## How it looks like?
-
-TODO tutorial and examples....
+Why on this date? Usually ISTA sends out the consumption email between 13th and 16th each month.
 
 ## Who this is for
 
-**A good fit if you:**
+- You use **ISTA EcoTrend** and want consumption and costs as easily visualizable as possible.
+- You are fine with **GitHub** (private repo, Actions, two secrets) and **unofficial** automation (see **Disclaimer** below).
 
-- Check ISTA EcoTrend often (e.g. after the monthly email).
-- Like a year-over-year view with fancy charts and tables, without maintainance costs.
-- Will not be deeply sad if ISTA changes their API and the app breaks. (We can always fix it though)
-- Want to contribute in any form. 
-
-**Probably not worth it if you:**
-
-- Open the EcoTrend app once or twice a year.
-- Do not want to touch GitHub (forks, Actions, secrets) at all.
-- Need an official or guaranteed access. 
-
----
-
-## Disclaimer & scope
+## Disclaimer
 
 - **ISTA unofficial API risk:** data is fetched with the unofficial library **`pyecotrend-ista`** ([upstream](https://github.com/Ludy87/pyecotrend-ista); pinned via git in [`requirements.txt`](requirements.txt)). ISTA may change endpoints or terms. **Use at your own risk.**
 
@@ -84,7 +62,7 @@ TODO tutorial and examples....
 
 ---
 
-## How it works (short)
+## How it works (tldr)
 
 - **Extract**: `pyecotrend-ista` client  
 - **Transform**: `normalize()`  
@@ -120,9 +98,9 @@ set -a && source .env && set +a
 python -m src.pipeline.report
 ```
 
-Open `REPORT.md` and `REPORT_YYYY.md`; charts live in `assets/charts/`.
+### Running with existing raw data
 
-Offline using a JSON shaped like `ista_dump` (`{ "<uuid>": { "consumption": … } }`):
+You can also try offline using an existing JSON file shaped like `ista_dump` (`{ "<uuid>": { "consumption": … } }`). See below:
 
 ```bash
 REPORT_FIXTURE_JSON=/path/to/dump.json python -m src.pipeline.report
@@ -147,5 +125,6 @@ python -m pytest -q
 ## Security
 
 - Never commit **`/.env`** or credentials in tracked source files.
-- Rotate your ISTA password immediatelz if it was ever exposed.
-- After forking, make sure you use a **private** repository, so that your private consumption data is kept private to you :)
+- Rotate your ISTA password immediately if it was ever exposed, by accident or not.
+- After forking, make sure you use a **private** repository, so that your consumption data is only visible to you.
+- The safest way to delete your already generated data is to delete the whole repository. To do so, go to the repository page → **Settings** → scroll down until you find **Delete this repository**. Click and confirm.
