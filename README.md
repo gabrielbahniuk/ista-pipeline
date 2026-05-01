@@ -148,4 +148,4 @@ python -m pytest -q
 
 - Never commit **`/.env`** or credentials in tracked source files.
 - Rotate your ISTA password immediatelz if it was ever exposed.
-- After forking, make sure you use a **private** repository, so that your private consumption data is kept private to you :)
+- After forking, make sure you use a **private** repository, so that your  consumption data is only visible to you :)
