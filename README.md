@@ -52,11 +52,6 @@ Open **`generated/reports/REPORT.md`** (or browse **`generated/reports/`**) on t
 The same workflow runs automatically on the **18th of every month at 06:00 UTC**. Change the time in [.github/workflows/report.yml](.github/workflows/report.yml) if needed.
 Why on this date? Usually ISTA sends out the consumption email between 13th and 16th each month.
 
-## Who this is for
-
-- You use ISTA EcoTrend and want consumption and costs as easily visualizable as possible.
-- You are fine using Github (private repo, Actions, two secrets).
-
 ## Disclaimer
 
 - **ISTA unofficial API risk:** data is fetched with the unofficial library **`pyecotrend-ista`** ([upstream](https://github.com/Ludy87/pyecotrend-ista); pinned via git in [`requirements.txt`](requirements.txt)). ISTA may change endpoints or terms. **Use at your own risk.**
@@ -64,19 +59,6 @@ Why on this date? Usually ISTA sends out the consumption email between 13th and 
 - **Not** a commercial app, hosted DB, realtime dashboard, or official ISTA product — just automation that commits reports into git in your private fork.
 
 - **Secrets** (`ISTA_EMAIL` / `ISTA_PASSWORD`) live in GitHub — **never** screenshot the values.
-
----
-
-## How it works (tldr)
-
-- **Extract**: `pyecotrend-ista` client  
-- **Transform**: `normalize()`  
-- **Report**: `python -m src.pipeline.report` (on GitHub Actions runners)  
-- **CI**: [.github/workflows/report.yml](.github/workflows/report.yml) — monthly cron (18th, 06:00 UTC) plus **Run workflow** anytime
-
-Markdown reports include tables, charts and anomaly notes for months where cost per unit is high compared to that year's own heating / warm-water baseline.
-
----
 
 ## Local development (optional)
 
