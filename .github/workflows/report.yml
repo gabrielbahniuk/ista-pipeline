@@ -35,7 +35,6 @@ jobs:
         env:
           ISTA_EMAIL: ${{ secrets.ISTA_EMAIL }}
           ISTA_PASSWORD: ${{ secrets.ISTA_PASSWORD }}
-          PIPELINE_SOURCE: ista
         run: python -m src.pipeline.report
 
       - name: Commit report artifacts

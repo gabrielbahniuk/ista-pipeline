@@ -48,12 +48,10 @@ def main() -> int:
     fixture = os.getenv("REPORT_FIXTURE_JSON")
     if fixture:
         payload = load_fixture_payload(Path(fixture))
-        source = os.getenv("PIPELINE_SOURCE", "ista")
-        records = normalize(payload, source=source)
+        records = normalize(payload)
     else:
         payload = extract_from_ista()
-        source = os.getenv("PIPELINE_SOURCE", "ista")
-        records = normalize(payload, source=source)
+        records = normalize(payload)
 
     root = repo_root()
     enriched = enrich_records(records)
