@@ -46,3 +46,15 @@ jobs:
           if git diff --staged --quiet; then echo "No report changes"; exit 0; fi
           git commit -m "chore: refresh ISTA report"
           git push
+
+      - name: Summary — link to REPORT.md (manual run only)
+        if: success() && github.event_name == 'workflow_dispatch'
+        run: |
+          URL="${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/generated/reports/REPORT.md"
+          {
+            echo "## 📊 Report index"
+            echo ""
+            echo "### 👉 [**Open REPORT.md →**]($URL)"
+            echo ""
+            echo "_Latest on branch \`${{ github.ref_name }}\` after this run’s push._"
+          } >> "$GITHUB_STEP_SUMMARY"
