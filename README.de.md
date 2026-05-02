@@ -128,4 +128,3 @@ python -m pytest -q
 - Niemals **`/.env`** oder Zugangsdaten in versionierten Dateien committen.
 - ISTA-Passwort sofort rotieren, wenn es je geleakt wurde.
 - Repo **privat** nutzen, damit Verbrauchsdaten nicht öffentlich sind.
-- Falls nicht mehr benötigt, am besten alles löschen: Repo-Seite öffnen → **Settings** → **Delete this repository** → bestätigen.
