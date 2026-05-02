@@ -1,8 +1,8 @@
 # ISTA EcoTrend {{ year }}
 
-_Last generated: {{ generated_at }}. Auto-generated._
+_Last updated: {{ generated_at }}. Auto-generated._
 
-[README](README.md) · [All years](REPORT.md)
+[README]({{ prefix_root }}README.md) · [All years](REPORT.md)
 
 {% if usage_notes %}
 <details open>
@@ -28,7 +28,7 @@ _Last generated: {{ generated_at }}. Auto-generated._
 {% for fig in section.figures %}
 ### {{ fig.title }}
 
-![{{ fig.title }}]({{ fig.path }})
+![{{ fig.title }}]({{ prefix_gen }}{{ fig.path }})
 
 {% endfor %}
 {% endif %}

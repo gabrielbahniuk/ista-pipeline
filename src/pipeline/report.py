@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-import json
-import os
-from datetime import UTC, datetime
+from datetime import datetime
 from pathlib import Path
-from typing import Any
+from zoneinfo import ZoneInfo
 
 from dotenv import load_dotenv
 
@@ -14,6 +12,7 @@ from src.pipeline.report_charts import generate_chart_assets
 from src.pipeline.report_data import build_sections, enrich_records
 from src.pipeline.report_csv import combined_usage_csv_path, write_all_usage_csv
 from src.pipeline.report_notes import build_usage_notes
+from src.pipeline.readme_nav import patch_report_readmes
 from src.pipeline.report_render import (
     build_index_context,
     build_year_file_context,
@@ -26,52 +25,37 @@ def repo_root() -> Path:
     return Path(__file__).resolve().parents[2]
 
 
-def load_fixture_payload(fixture_path: Path) -> dict[str, Any]:
-    raw = fixture_path.read_text(encoding="utf-8")
-    data = json.loads(raw)
-
-    if isinstance(data, dict) and "items" not in data and data:
-        first_key = next(iter(data))
-        if isinstance(data[first_key], dict) and "consumption" in data[first_key]:
-            return {
-                "uuids": list(data.keys()),
-                "items": {
-                    uuid: {"consumption": payload["consumption"], "details": payload.get("details", {})}
-                    for uuid, payload in data.items()
-                },
-            }
-
-    return data
+_GENERATED_SUBDIR = "generated"
+_REPORTS_SUBDIRNAME = "reports"
+_REPORT_INDEX_DOC = "REPORT.md"
+# Markdown under generated/reports/ → siblings under generated/ (../) vs repo root (../../)
+_MARKDOWN_PREFIX_GEN = "../"
+_MARKDOWN_PREFIX_REPO_ROOT = "../../"
 
 
 def main() -> int:
     load_dotenv()
 
-    fixture = os.getenv("REPORT_FIXTURE_JSON")
-    if fixture:
-        payload = load_fixture_payload(Path(fixture))
-        records = normalize(payload)
-    else:
-        payload = extract_from_ista()
-        records = normalize(payload)
+    payload = extract_from_ista()
+    records = normalize(payload)
 
     root = repo_root()
+    reports_dir = root / _GENERATED_SUBDIR / _REPORTS_SUBDIRNAME
+    reports_dir.mkdir(parents=True, exist_ok=True)
     enriched = enrich_records(records)
 
-    charts_dir = root / "assets" / "charts"
+    charts_dir = root / _GENERATED_SUBDIR / "assets"
     chart_paths = generate_chart_assets(enriched, charts_dir)
 
     years = sorted({int(r["year"]) for r in enriched}, reverse=True)
-    generated_at = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
+    generated_at = datetime.now(ZoneInfo("Europe/Berlin")).strftime("%d.%m.%Y %H:%M")
 
     sections_all = build_sections(enriched, chart_paths)
     sections_by_year = {int(s["year"]): s for s in sections_all}
 
     write_all_usage_csv(sections_all, combined_usage_csv_path(root))
 
-    usage_notes_by_year = {
-        int(s["year"]): build_usage_notes(s["usage_rows"], int(s["year"])) for s in sections_all
-    }
+    usage_notes_by_year = {int(s["year"]): build_usage_notes(s["usage_rows"]) for s in sections_all}
     years_with_usage_notes = sorted(
         (y for y, notes in usage_notes_by_year.items() if notes), reverse=True
     )
@@ -84,19 +68,47 @@ def main() -> int:
         ctx_year = build_year_file_context(
             section, generated_at, usage_notes=usage_notes_by_year[year]
         )
-        year_path = root / f"REPORT_{year}.md"
-        year_path.write_text(render_year_report_markdown(root, ctx_year) + "\n", encoding="utf-8")
+        year_path = reports_dir / f"{year}.md"
+        year_path.write_text(
+            render_year_report_markdown(
+                root,
+                ctx_year,
+                prefix_gen=_MARKDOWN_PREFIX_GEN,
+                prefix_root=_MARKDOWN_PREFIX_REPO_ROOT,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
         written_years.append(year)
 
     index_ctx = build_index_context(
-        enriched, years, generated_at, years_with_usage_notes=years_with_usage_notes
+        years,
+        generated_at,
+        years_with_usage_notes=years_with_usage_notes,
     )
-    (root / "REPORT.md").write_text(render_index_markdown(root, index_ctx) + "\n", encoding="utf-8")
+    index_path = reports_dir / _REPORT_INDEX_DOC
+    index_path.write_text(
+        render_index_markdown(
+            root,
+            index_ctx,
+            prefix_gen=_MARKDOWN_PREFIX_GEN,
+            prefix_root=_MARKDOWN_PREFIX_REPO_ROOT,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
 
     print(
         "Report:",
-        {"index": str(root / "REPORT.md"), "year_files": written_years, "chart_count": len(chart_paths), "rows": len(enriched)},
+        {"index": str(index_path), "year_files": written_years, "chart_count": len(chart_paths), "rows": len(enriched)},
     )
+    if patch_report_readmes(root):
+        print("README:", {"nav": "updated"})
+    else:
+        print(
+            "README: nav markers skipped (missing README.md / README.de.md or <!-- ista-report-nav --> markers)",
+            flush=True,
+        )
     return 0
 
 

@@ -12,6 +12,9 @@
 
 </div>
 
+<!-- ista-report-nav:begin -->
+<!-- ista-report-nav:end -->
+
 ## Was
 
 Einordnung der finanziellen Auswirkungen deines Heiz- und Warmwasserverhaltens über das Jahr, mit Daten aus der ISTA EcoTrend App.
@@ -41,7 +44,7 @@ Einordnung der finanziellen Auswirkungen deines Heiz- und Warmwasserverhaltens �
 5. Tab **Actions** → Workflow **Generate ISTA report**.
 6. **Run workflow** → Branch (idR `main`) → **Run workflow**.
 
-Zurück zur Repo-Übersicht und **`REPORT.md`** öffnen.
+Im Repo **`generated/reports/REPORT.md`** öffnen (oder Ordner **`generated/reports/`** durchsuchen) für den Report‑Index.
 
 ### (Optional) einfach warten
 
@@ -95,18 +98,10 @@ cp .env.example .env
 set -a && source .env && set +a
 ```
 
-### 3) Report erstellenb
+### 3) Report erstellen
 
 ```bash
 python -m src.pipeline.report
-```
-
-### Mit vorhandenen Daten (offline)
-
-Geht mit einer JSON-Datei im Stil `ista_dump` (`{ "<uuid>": { "consumption": … } }`):
-
-```bash
-REPORT_FIXTURE_JSON=/pfad/zu/dump.json python -m src.pipeline.report
 ```
 
 ### Tests
@@ -120,8 +115,6 @@ python -m pytest -q
 | Variable | Zweck |
 |----------|--------|
 | `ISTA_EMAIL`, `ISTA_PASSWORD` | ISTA-Login (Live-API) |
-| `PIPELINE_DEBUG` | `true` für mehr Diagnose beim Extract |
-| `REPORT_FIXTURE_JSON` | Pfad zu Offline-JSON statt API |
 
 ## Sicherheit
 

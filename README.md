@@ -1,3 +1,5 @@
+🇩🇪 **[Deutsche Version](README.de.md)**
+
 <div align="center">
 
 <img src="docs/images/logo-readme.svg" alt="Cartoon character wearing sunglasses made from two euro coins." width="100" height="65" />
@@ -10,7 +12,8 @@
 
 </div>
 
-🇩🇪 **[Deutsche Version](README.de.md)**
+<!-- ista-report-nav:begin -->
+<!-- ista-report-nav:end -->
 
 ## What
 
@@ -42,7 +45,7 @@ Understanding the financial impact of your yearly heating & showering behaviour,
 5. Open the **Actions** tab, select the **Generate ISTA report** workflow.
 6. Click **Run workflow** → choose your default branch (often `main`) → **Run workflow**.
 
-Go back to the repository page and click on `REPORT.md` to start visualizing the data.
+Open **`generated/reports/REPORT.md`** (or browse **`generated/reports/`**) on the repo home page for the Markdown report index.
 
 ### (Optional) just wait for the schedule
 
@@ -102,14 +105,6 @@ set -a && source .env && set +a
 python -m src.pipeline.report
 ```
 
-### Running with existing raw data
-
-You can also try offline using an existing JSON file shaped like `ista_dump` (`{ "<uuid>": { "consumption": … } }`). See below:
-
-```bash
-REPORT_FIXTURE_JSON=/path/to/dump.json python -m src.pipeline.report
-```
-
 ### Tests
 
 ```bash
@@ -121,8 +116,6 @@ python -m pytest -q
 | Variable | Purpose |
 |----------|---------|
 | `ISTA_EMAIL`, `ISTA_PASSWORD` | ISTA login (live API fetch) |
-| `PIPELINE_DEBUG` | set `true` for extra extract diagnostics |
-| `REPORT_FIXTURE_JSON` | path to offline JSON instead of the API |
 
 ## Security
 

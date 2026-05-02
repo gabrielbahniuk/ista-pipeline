@@ -195,9 +195,8 @@ def _maybe_note(row: UsageTableRow, *, cost: float, stats: _MetricStats) -> str 
     return _ratio_note(row, cost=cost, stats=stats)
 
 
-def build_usage_notes(usage_rows: list[UsageTableRow], year: int) -> list[UsageNote]:
+def build_usage_notes(usage_rows: list[UsageTableRow]) -> list[UsageNote]:
     """Flags months where billed cost looks out of proportion to recorded heating / warm-water use."""
-    _ = year
 
     eligible = {"Heating", "Warm water"}
     stats_by_metric = _build_metric_stats(usage_rows)

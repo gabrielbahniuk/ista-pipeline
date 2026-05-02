@@ -58,4 +58,5 @@ def test_combined_usage_csv_path(tmp_path: Path):
     p = combined_usage_csv_path(tmp_path)
     assert p.name == COMBINED_CSV_FILENAME
     assert p.parent.name == "exports"
+    assert p.parent.parent.name == "generated"
 

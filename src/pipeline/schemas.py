@@ -23,14 +23,6 @@ class EnrichedRecord(NormalizedRecord):
     month: int
 
 
-class ReportTableRow(TypedDict):
-    month: int
-    metric_key: str
-    metric_label: str
-    value: float
-    unit: str
-
-
 class FigureRef(TypedDict):
     title: str
     path: str
@@ -59,18 +51,9 @@ class UsageNote(TypedDict):
     message: str
 
 
-class SummaryRow(TypedDict):
-    year: int
-    month: int
-    metric_label: str
-    value: float
-    unit: str
-
-
 class ReportIndexContext(TypedDict):
     generated_at: str
     years: list[int]
-    summary_recent: list[SummaryRow]
     years_with_usage_notes: list[int]
 
 

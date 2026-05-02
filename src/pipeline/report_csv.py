@@ -17,7 +17,7 @@ def _csv_float_cell(v: float | None) -> str:
 
 
 def combined_usage_csv_path(repo_root: Path) -> Path:
-    return repo_root / "exports" / COMBINED_CSV_FILENAME
+    return repo_root / "generated" / "exports" / COMBINED_CSV_FILENAME
 
 
 def _usage_row_dict(row: UsageTableRow, year: int) -> dict[str, str]:

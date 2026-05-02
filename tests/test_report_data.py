@@ -1,9 +1,4 @@
-from src.pipeline.report_data import (
-    build_sections,
-    compute_chart_series,
-    enrich_records,
-    report_summary_recent,
-)
+from src.pipeline.report_data import build_sections, compute_chart_series, enrich_records
 
 
 def test_enrich_records_parses_period_end():
@@ -24,7 +19,7 @@ def test_build_sections_merges_usage_table():
             {"period_end": "2026-03-31T23:59:59+00:00", "metric": "heating_cost", "value": 95.0, "unit": "EUR"},
         ]
     )
-    sections = build_sections(enriched, chart_paths={(2026, "heating"): "assets/charts/heating_2026.svg"})
+    sections = build_sections(enriched, chart_paths={(2026, "heating"): "assets/heating_2026.svg"})
     assert len(sections) == 1
     assert sections[0]["year"] == 2026
     rows = sections[0]["usage_rows"]
@@ -58,14 +53,3 @@ def test_build_sections_skips_benchmark_metrics():
     assert len(rows) == 1
     assert rows[0]["consumption_value"] == 10.0
 
-
-def test_report_summary_recent_orders_newest_first():
-    enriched = enrich_records(
-        [
-            {"period_end": "2025-12-31T23:59:59+00:00", "metric": "heating", "value": 1.0, "unit": "units"},
-            {"period_end": "2026-01-31T23:59:59+00:00", "metric": "heating", "value": 2.0, "unit": "units"},
-        ]
-    )
-    summary = report_summary_recent(enriched, max_rows=5)
-    assert summary[0]["year"] == 2026
-    assert summary[1]["year"] == 2025

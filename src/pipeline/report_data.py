@@ -2,16 +2,23 @@ from __future__ import annotations
 
 from collections import defaultdict
 from datetime import datetime
+from typing import TypedDict
 
 from src.pipeline.schemas import (
     EnrichedRecord,
     FigureRef,
     NormalizedRecord,
-    ReportTableRow,
-    SummaryRow,
     UsageTableRow,
     YearSection,
 )
+
+
+class _ReportTableRow(TypedDict):
+    month: int
+    metric_key: str
+    metric_label: str
+    value: float
+    unit: str
 
 METRIC_LABELS: dict[str, str] = {
     "heating": "Heating",
@@ -61,12 +68,12 @@ def _metric_label(metric: str) -> str:
     return METRIC_LABELS.get(metric, metric)
 
 
-def _row_index(rows: list[ReportTableRow]) -> dict[tuple[int, str], ReportTableRow]:
+def _row_index(rows: list[_ReportTableRow]) -> dict[tuple[int, str], _ReportTableRow]:
     return {(r["month"], r["metric_key"]): r for r in rows}
 
 
 def _merge_usage_rows(
-    consumption_rows: list[ReportTableRow], cost_rows: list[ReportTableRow]
+    consumption_rows: list[_ReportTableRow], cost_rows: list[_ReportTableRow]
 ) -> list[UsageTableRow]:
     cons_ix = _row_index(consumption_rows)
     cost_ix = _row_index(cost_rows)
@@ -126,7 +133,7 @@ def _merge_usage_rows(
 def build_sections(
     enriched: list[EnrichedRecord], chart_paths: dict[tuple[int, str], str]
 ) -> list[YearSection]:
-    by_year: dict[int, dict[str, list[ReportTableRow]]] = defaultdict(
+    by_year: dict[int, dict[str, list[_ReportTableRow]]] = defaultdict(
         lambda: {"consumption": [], "costs": []}
     )
     for r in enriched:
@@ -135,7 +142,7 @@ def build_sections(
         if _is_benchmark(metric):
             continue
         bucket = by_year[year]["costs" if _is_cost(metric) else "consumption"]
-        row: ReportTableRow = {
+        row: _ReportTableRow = {
             "month": int(r["month"]),
             "metric_key": metric,
             "metric_label": _metric_label(metric),
@@ -144,7 +151,7 @@ def build_sections(
         }
         bucket.append(row)
 
-    def sort_bucket(rows: list[ReportTableRow]) -> list[ReportTableRow]:
+    def sort_bucket(rows: list[_ReportTableRow]) -> list[_ReportTableRow]:
         return sorted(rows, key=lambda x: (-x["month"], x["metric_key"]))
 
     sections: list[YearSection] = []
@@ -183,27 +190,3 @@ def compute_chart_series(enriched: list[EnrichedRecord]) -> dict[tuple[int, str]
         values = [months_map[m] for m in months]
         out[key] = (months, values)
     return out
-
-
-def report_summary_recent(enriched: list[EnrichedRecord], max_rows: int = 12) -> list[SummaryRow]:
-    """Latest rows across all years/metrics for preview table."""
-    if not enriched:
-        return []
-
-    def sort_key(r: EnrichedRecord) -> tuple[int, int, str]:
-        return int(r["year"]), int(r["month"]), str(r["metric"])
-
-    ranked = sorted(enriched, key=sort_key, reverse=True)
-    ranked_nb = [r for r in ranked if not _is_benchmark(str(r["metric"]))]
-    summary: list[SummaryRow] = []
-    for r in ranked_nb[:max_rows]:
-        summary.append(
-            {
-                "year": r["year"],
-                "month": r["month"],
-                "metric_label": _metric_label(str(r["metric"])),
-                "value": float(r["value"]),
-                "unit": str(r["unit"]),
-            }
-        )
-    return summary

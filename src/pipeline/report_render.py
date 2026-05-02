@@ -4,9 +4,8 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from src.pipeline.report_data import report_summary_recent
 from src.pipeline.report_notes import build_usage_notes
-from src.pipeline.schemas import EnrichedRecord, ReportIndexContext, UsageNote, YearReportContext, YearSection
+from src.pipeline.schemas import ReportIndexContext, UsageNote, YearReportContext, YearSection
 
 
 def _jinja_env(repo_root: Path) -> Environment:
@@ -19,16 +18,35 @@ def _jinja_env(repo_root: Path) -> Environment:
     )
 
 
-def render_index_markdown(repo_root: Path, context: ReportIndexContext) -> str:
-    return _jinja_env(repo_root).get_template("report_index.md.j2").render(**context)
+def render_index_markdown(
+    repo_root: Path,
+    context: ReportIndexContext,
+    *,
+    prefix_gen: str = "",
+    prefix_root: str = "",
+) -> str:
+    return _jinja_env(repo_root).get_template("report_index.md.j2").render(
+        **context,
+        prefix_gen=prefix_gen,
+        prefix_root=prefix_root,
+    )
 
 
-def render_year_report_markdown(repo_root: Path, context: YearReportContext) -> str:
-    return _jinja_env(repo_root).get_template("report_year.md.j2").render(**context)
+def render_year_report_markdown(
+    repo_root: Path,
+    context: YearReportContext,
+    *,
+    prefix_gen: str = "",
+    prefix_root: str = "",
+) -> str:
+    return _jinja_env(repo_root).get_template("report_year.md.j2").render(
+        **context,
+        prefix_gen=prefix_gen,
+        prefix_root=prefix_root,
+    )
 
 
 def build_index_context(
-    enriched: list[EnrichedRecord],
     years: list[int],
     generated_at: str,
     *,
@@ -38,7 +56,6 @@ def build_index_context(
     return {
         "generated_at": generated_at,
         "years": years,
-        "summary_recent": report_summary_recent(enriched),
         "years_with_usage_notes": ywn,
     }
 
@@ -50,7 +67,7 @@ def build_year_file_context(
     usage_notes: list[UsageNote] | None = None,
 ) -> YearReportContext:
     yr = int(section["year"])
-    notes = usage_notes if usage_notes is not None else build_usage_notes(section["usage_rows"], yr)
+    notes = usage_notes if usage_notes is not None else build_usage_notes(section["usage_rows"])
     return {
         "generated_at": generated_at,
         "year": yr,

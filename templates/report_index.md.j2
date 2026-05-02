@@ -1,15 +1,15 @@
 # ISTA EcoTrend reports
 
-_Index generated {{ generated_at }}. Per-year reports are linked below._
+_Last updated: {{ generated_at }}. Per-year reports are linked below._
 
-<a href="exports/ista_usage_all.csv"><img src="docs/images/csv-report.svg" width="28" height="28" alt="" style="vertical-align: middle;"> <strong>CSV Report</strong></a> · [README](README.md)
+<a href="{{ prefix_gen }}exports/ista_usage_all.csv"><img src="{{ prefix_root }}docs/images/csv-report.svg" width="28" height="28" alt="" style="vertical-align: middle;"> <strong>CSV Report</strong></a> · [README]({{ prefix_root }}README.md)
 
 {% if years_with_usage_notes %}
 <details open>
 <summary><strong>⚠️ Anomaly detected: Billed vs. Used</strong></summary>
 
 {% for y in years_with_usage_notes %}
-- [Report {{ y }}](REPORT_{{ y }}.md)
+- [Report {{ y }}]({{ y }}.md)
 {% endfor %}
 
 </details>
@@ -18,18 +18,5 @@ _Index generated {{ generated_at }}. Per-year reports are linked below._
 ## By year
 
 {% for y in years %}
-- [Report {{ y }}](REPORT_{{ y }}.md)
+- [Report {{ y }}]({{ y }}.md)
 {% endfor %}
-
-## Recent entries (all years)
-
-<details>
-<summary>Last {{ summary_recent | length }} data points</summary>
-
-| Year | Month | Metric | Value | Unit |
-|---:|---:|---|---:|---|
-{% for row in summary_recent %}
-| {{ row.year }} | {{ row.month }} | {{ row.metric_label }} | {{ row.value }} | {{ row.unit }} |
-{% endfor %}
-
-</details>

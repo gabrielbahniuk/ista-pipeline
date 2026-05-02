@@ -14,7 +14,7 @@ from matplotlib.patches import Patch
 from src.pipeline.report_data import CHART_METRIC_PAIRS, compute_chart_series
 from src.pipeline.schemas import EnrichedRecord
 
-REL_CHART_ROOT = "assets/charts"
+REL_CHART_ROOT = "assets"
 
 _COL_PAGE = "#f1f5f9"
 _COL_AXIS = "#64748b"
