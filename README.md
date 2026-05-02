@@ -129,5 +129,4 @@ python -m pytest -q
 - Never commit **`/.env`** or credentials in tracked source files.
 - Rotate your ISTA password immediately if it was ever exposed.
 - Ensure you use a **private** repository, so that your consumption data is not public.
-- If no longer needed, I recommend deleting the repository. To do so, go to the repository page → **Settings** → **Delete this repository**. Click to confirm.
 
