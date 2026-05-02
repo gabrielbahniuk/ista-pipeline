@@ -2,13 +2,15 @@
 
 <img src="docs/images/logo-readme.svg" alt="Cartoon character wearing sunglasses made from two euro coins." width="100" height="65" />
 
-# hasta la vISTA, baby
+# ISTA la vista
 
 [![Generate ISTA report](https://img.shields.io/badge/GitHub_Actions-Generate_report-2088FF?logo=githubactions&logoColor=white)](https://github.com/gabrielbahniuk/ista-pipeline/actions/workflows/report.yml)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 </div>
+
+🇩🇪 **[Deutsche Version](README.de.md)**
 
 ## What
 
@@ -49,14 +51,14 @@ Why on this date? Usually ISTA sends out the consumption email between 13th and 
 
 ## Who this is for
 
-- You use **ISTA EcoTrend** and want consumption and costs as easily visualizable as possible.
-- You are fine with **GitHub** (private repo, Actions, two secrets) and **unofficial** automation (see **Disclaimer** below).
+- You use ISTA EcoTrend and want consumption and costs as easily visualizable as possible.
+- You are fine using Github (private repo, Actions, two secrets).
 
 ## Disclaimer
 
 - **ISTA unofficial API risk:** data is fetched with the unofficial library **`pyecotrend-ista`** ([upstream](https://github.com/Ludy87/pyecotrend-ista); pinned via git in [`requirements.txt`](requirements.txt)). ISTA may change endpoints or terms. **Use at your own risk.**
 
-- **Not** a commercial app, hosted DB, realtime dashboard, or official ISTA product — just automation that commits reports **into git** in **your private fork**.
+- **Not** a commercial app, hosted DB, realtime dashboard, or official ISTA product — just automation that commits reports into git in your private fork.
 
 - **Secrets** (`ISTA_EMAIL` / `ISTA_PASSWORD`) live in GitHub — **never** screenshot the values.
 
@@ -117,8 +119,6 @@ python -m pytest -q
 | Variable | Purpose |
 |----------|---------|
 | `ISTA_EMAIL`, `ISTA_PASSWORD` | ISTA login (live API fetch) |
-| `PIPELINE_SOURCE` | defaults to `ista` |
-| `PIPELINE_TIMEZONE` | defaults to `UTC` |
 | `PIPELINE_DEBUG` | set `true` for extra extract diagnostics |
 | `REPORT_FIXTURE_JSON` | path to offline JSON instead of the API |
 
@@ -127,4 +127,5 @@ python -m pytest -q
 - Never commit **`/.env`** or credentials in tracked source files.
 - Rotate your ISTA password immediately if it was ever exposed.
 - Ensure you use a **private** repository, so that your consumption data is not public.
-- The safest way to delete your already generated data is to delete the whole repository. To do so, go to the repository page → **Settings** → **Delete this repository**. Click and confirm.
+- If no longer needed, I recommend deleting the repository. To do so, go to the repository page → **Settings** → **Delete this repository**. Click to confirm.
+
