@@ -60,6 +60,47 @@ def _find_first_numeric(value: object) -> float | None:
     return _to_float(value)
 
 
+def _benchmark_from_reading(
+    reading: dict[str, Any], base_metric: str
+) -> tuple[float, str] | None:
+    """Benchmark row (averageConsumption API block) paired with resident reading."""
+    if base_metric not in ("heating", "hot_water"):
+        return None
+    ac = reading.get("averageConsumption")
+    if not isinstance(ac, dict):
+        return None
+
+    # Heating + kWh: peer average is additionalAverageConsumptionValue in real API payloads.
+    if base_metric == "heating":
+        if _heating_value_unit(reading) is not None:
+            peer_avg_kwh = _to_float(ac.get("additionalAverageConsumptionValue"))
+            if peer_avg_kwh is not None:
+                return peer_avg_kwh, "kWh"
+
+        ac_add = _to_float(ac.get("additionalValue") or ac.get("additionalConsumptionValue"))
+        if ac_add is not None and _normalize_unit(ac.get("additionalUnit")) == "kWh":
+            return ac_add, "kWh"
+
+    bench_val = _to_float(ac.get("averageConsumptionValue") or ac.get("value"))
+    if bench_val is None:
+        return None
+    ac_unit = ac.get("unit")
+    fallback_unit = reading.get("unit") or reading.get("additionalUnit")
+    bench_unit = _normalize_unit(
+        ac_unit if isinstance(ac_unit, str) and ac_unit.strip() else fallback_unit
+    )
+    return bench_val, bench_unit
+
+
+def _heating_value_unit(reading: dict[str, Any]) -> tuple[float, str] | None:
+    """Prefer kWh from additionalValue when API pairs it with Einheiten main value."""
+    add_val = _to_float(reading.get("additionalValue"))
+    add_unit_norm = _normalize_unit(reading.get("additionalUnit"))
+    if add_val is not None and add_unit_norm == "kWh":
+        return add_val, "kWh"
+    return None
+
+
 def _map_metric(raw_type: object) -> str:
     text = str(raw_type or "").strip().lower()
     if text == "warmwater":
@@ -175,13 +216,19 @@ def normalize(payload: dict[str, Any], source: str = "ista") -> list[NormalizedR
                 for reading in readings:
                     if not isinstance(reading, dict):
                         continue
-                    value = _to_float(reading.get("value"))
-                    if value is None:
-                        continue
-
                     metric = _map_metric(reading.get("type"))
-                    # Prefer the primary unit; fallback to additional unit when missing
-                    unit = _normalize_unit(reading.get("unit") or reading.get("additionalUnit"))
+                    heating_kwh = (
+                        _heating_value_unit(reading) if metric == "heating" else None
+                    )
+                    if heating_kwh is not None:
+                        value, unit = heating_kwh
+                    else:
+                        value = _to_float(reading.get("value"))
+                        if value is None:
+                            continue
+                        unit = _normalize_unit(
+                            reading.get("unit") or reading.get("additionalUnit")
+                        )
 
                     fingerprint_raw = f"{unit_uuid}|{metric}|{period_end}|{value}|{unit}"
                     fingerprint = hashlib.sha256(fingerprint_raw.encode("utf-8")).hexdigest()
@@ -204,6 +251,35 @@ def normalize(payload: dict[str, Any], source: str = "ista") -> list[NormalizedR
                             "fingerprint": fingerprint,
                         }
                     )
+
+                    bench = _benchmark_from_reading(reading, metric)
+                    if bench is not None:
+                        bench_val, bench_unit = bench
+                        bench_metric = f"{metric}_benchmark"
+                        fingerprint_raw_bench = (
+                            f"{unit_uuid}|{bench_metric}|{period_end}|{bench_val}|{bench_unit}"
+                        )
+                        fingerprint_bench = hashlib.sha256(
+                            fingerprint_raw_bench.encode("utf-8")
+                        ).hexdigest()
+                        records.append(
+                            {
+                                "source": source,
+                                "unit_uuid": str(unit_uuid),
+                                "meter_name": meter_name,
+                                "metric": bench_metric,
+                                "period_start": None,
+                                "period_end": period_end,
+                                "value": bench_val,
+                                "unit": bench_unit,
+                                "raw_payload": {
+                                    "period": period_item.get("date"),
+                                    "benchmark_reading": reading,
+                                },
+                                "collected_at": now,
+                                "fingerprint": fingerprint_bench,
+                            }
+                        )
         if isinstance(costs, list):
             for cost_item in costs:
                 if not isinstance(cost_item, dict):

@@ -53,6 +53,10 @@ def _is_cost(metric: str) -> bool:
     return metric.endswith("_cost")
 
 
+def _is_benchmark(metric: str) -> bool:
+    return metric.endswith("_benchmark")
+
+
 def _metric_label(metric: str) -> str:
     return METRIC_LABELS.get(metric, metric)
 
@@ -127,11 +131,14 @@ def build_sections(
     )
     for r in enriched:
         year = r["year"]
-        bucket = by_year[year]["costs" if _is_cost(str(r["metric"])) else "consumption"]
+        metric = str(r["metric"])
+        if _is_benchmark(metric):
+            continue
+        bucket = by_year[year]["costs" if _is_cost(metric) else "consumption"]
         row: ReportTableRow = {
             "month": int(r["month"]),
-            "metric_key": str(r["metric"]),
-            "metric_label": _metric_label(str(r["metric"])),
+            "metric_key": metric,
+            "metric_label": _metric_label(metric),
             "value": float(r["value"]),
             "unit": str(r["unit"]),
         }
@@ -187,8 +194,9 @@ def report_summary_recent(enriched: list[EnrichedRecord], max_rows: int = 12) ->
         return int(r["year"]), int(r["month"]), str(r["metric"])
 
     ranked = sorted(enriched, key=sort_key, reverse=True)
+    ranked_nb = [r for r in ranked if not _is_benchmark(str(r["metric"]))]
     summary: list[SummaryRow] = []
-    for r in ranked[:max_rows]:
+    for r in ranked_nb[:max_rows]:
         summary.append(
             {
                 "year": r["year"],

@@ -69,7 +69,7 @@ Why on this date? Usually ISTA sends out the consumption email between 13th and 
 - **Extract**: `pyecotrend-ista` client  
 - **Transform**: `normalize()`  
 - **Report**: `python -m src.pipeline.report` (on GitHub Actions runners)  
-- **CI**: [.github/workflows/report.yml](.github/workflows/report.yml) — monthly cron (18th, 06:00 UTC) plus **Run workflow** anytime  
+- **CI**: [.github/workflows/report.yml](.github/workflows/report.yml) — monthly cron (18th, 06:00 UTC) plus **Run workflow** anytime
 
 ---
 

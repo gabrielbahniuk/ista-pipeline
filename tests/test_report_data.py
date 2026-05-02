@@ -45,6 +45,20 @@ def test_compute_chart_series():
     assert series[(2026, "heating")] == ([1, 3], [1.0, 3.0])
 
 
+def test_build_sections_skips_benchmark_metrics():
+    enriched = enrich_records(
+        [
+            {"period_end": "2026-03-31T23:59:59+00:00", "metric": "heating", "value": 10.0, "unit": "units"},
+            {"period_end": "2026-03-31T23:59:59+00:00", "metric": "heating_benchmark", "value": 8.0, "unit": "units"},
+            {"period_end": "2026-03-31T23:59:59+00:00", "metric": "heating_cost", "value": 95.0, "unit": "EUR"},
+        ]
+    )
+    sections = build_sections(enriched, chart_paths={})
+    rows = sections[0]["usage_rows"]
+    assert len(rows) == 1
+    assert rows[0]["consumption_value"] == 10.0
+
+
 def test_report_summary_recent_orders_newest_first():
     enriched = enrich_records(
         [
