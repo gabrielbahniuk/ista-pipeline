@@ -12,6 +12,7 @@ from src.pipeline.extract import extract_from_ista
 from src.pipeline.normalize import normalize
 from src.pipeline.report_charts import generate_chart_assets
 from src.pipeline.report_data import build_sections, enrich_records
+from src.pipeline.report_csv import combined_usage_csv_path, write_all_usage_csv
 from src.pipeline.report_render import (
     build_index_context,
     build_year_file_context,
@@ -62,13 +63,17 @@ def main() -> int:
     years = sorted({int(r["year"]) for r in enriched}, reverse=True)
     generated_at = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
 
+    sections_all = build_sections(enriched, chart_paths)
+    sections_by_year = {int(s["year"]): s for s in sections_all}
+
+    write_all_usage_csv(sections_all, combined_usage_csv_path(root))
+
     written_years = []
     for year in years:
-        year_enriched = [r for r in enriched if int(r["year"]) == year]
-        sections_one = build_sections(year_enriched, chart_paths)
-        if len(sections_one) != 1:
-            raise RuntimeError(f"Expected one section per year, got {len(sections_one)} for {year}")
-        ctx_year = build_year_file_context(sections_one[0], generated_at)
+        section = sections_by_year.get(year)
+        if section is None:
+            raise RuntimeError(f"No section built for year {year}")
+        ctx_year = build_year_file_context(section, generated_at)
         year_path = root / f"REPORT_{year}.md"
         year_path.write_text(render_year_report_markdown(root, ctx_year) + "\n", encoding="utf-8")
         written_years.append(year)

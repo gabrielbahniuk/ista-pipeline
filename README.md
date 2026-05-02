@@ -71,6 +71,8 @@ Why on this date? Usually ISTA sends out the consumption email between 13th and 
 - **Report**: `python -m src.pipeline.report` (on GitHub Actions runners)  
 - **CI**: [.github/workflows/report.yml](.github/workflows/report.yml) — monthly cron (18th, 06:00 UTC) plus **Run workflow** anytime
 
+Markdown reports include tables and charts; the index **`REPORT.md`** links (**CSV Report**, spreadsheet icon) to **`exports/ista_usage_all.csv`** — all years in one file, same columns as each year’s consumption & costs table.
+
 ---
 
 ## Local development (optional)

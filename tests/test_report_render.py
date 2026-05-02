@@ -22,6 +22,8 @@ def test_render_year_report_contains_tables_and_title():
     markdown = render_year_report_markdown(repo_root, ctx)
 
     assert "# ISTA EcoTrend 2026" in markdown
+    assert "docs/images/csv-report.svg" not in markdown
+    assert "ista_usage_all" not in markdown
     assert "## Consumption & costs" in markdown
     assert "| 3 | Heating | 165.0 | units | 95.0 |" in markdown
 
@@ -39,5 +41,7 @@ def test_render_index_lists_years_and_summary():
 
     assert "[Report 2026](REPORT_2026.md)" in md
     assert "[Report 2025](REPORT_2025.md)" in md
+    assert "exports/ista_usage_all.csv" in md
+    assert "CSV Report" in md and "docs/images/csv-report.svg" in md
     assert "## By year" in md
     assert "## Recent entries" in md

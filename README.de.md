@@ -70,6 +70,8 @@ Warum an dem Tag? ISTA schickt die Verbrauchs-Mail meist zwischen dem **13. und 
 - **Report:** `python -m src.pipeline.report` (auf GitHub Actions)  
 - **CI:** [.github/workflows/report.yml](.github/workflows/report.yml) — Cron monatlich (18., 06:00 UTC) plus **Run workflow** jederzeit  
 
+Im Index **`REPORT.md`** verlinkt **CSV Report** auf **`exports/ista_usage_all.csv`** — alle Jahre zusammen, gleiche Spalten wie die Verbrauchs- und Kostentabellen pro Jahr.
+
 ---
 
 ## Lokal entwickeln (optional)
