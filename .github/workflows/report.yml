@@ -54,7 +54,7 @@ jobs:
           {
             echo "## 📊 Report index"
             echo ""
-            echo "### 👉 [**Open REPORT.md →**]($URL)"
+            echo "### 👉 [**Open Report →**]($URL)"
             echo ""
             echo "_Latest on branch \`${{ github.ref_name }}\` after this run’s push._"
           } >> "$GITHUB_STEP_SUMMARY"
