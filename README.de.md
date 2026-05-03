@@ -13,8 +13,6 @@
 </div>
 
 <!-- ista-report-nav:begin -->
-<h3 align="center"><a href="./generated/reports/REPORT.md">Neuesten Report öffnen →</a></h3>
-<p align="center"><sup>Zuletzt erstellt · 03.05.2026 12:01</sup></p>
 <!-- ista-report-nav:end -->
 
 Holt Heiz- und Warmwasserdaten aus ISTA EcoTrend wie die App, committet Markdown, Charts und eine CSV unter `generated/`. Am sinnvollsten mit **privatem** Repo.

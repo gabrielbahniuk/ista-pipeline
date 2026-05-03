@@ -13,8 +13,6 @@
 </div>
 
 <!-- ista-report-nav:begin -->
-<h3 align="center"><a href="./generated/reports/REPORT.md">Open Latest Report →</a></h3>
-<p align="center"><sup>Last updated · 03.05.2026 12:01</sup></p>
 <!-- ista-report-nav:end -->
 
 Pulls ISTA EcoTrend heating and hot-water data like the app does, then commits Markdown, charts, and a CSV under `generated/`. Best with a **private** repo.
